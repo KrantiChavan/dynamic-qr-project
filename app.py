@@ -42,7 +42,7 @@ with app.app_context():
 
 os.makedirs("static/images", exist_ok=True)
 
-BASE_URL = os.environ.get("BASE_URL", "http://127.0.0.1:5000")
+BASE_URL = os.environ.get("BASE_URL", "https://dynamic-qr-project-1.onrender.com")
 
 # ---------- QR GENERATE ----------
 def generate_qr(data, filename):
@@ -246,4 +246,4 @@ def logout():
 
 # ---------- RUN ----------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
