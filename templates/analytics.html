@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        canvas {
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Analytics</h2>
+
+<!-- Chart -->
+<canvas id="chart" height="100"></canvas>
+
+<script>
+    // ✅ Safe conversion (Jinja → JS)
+    let total = Number("{{ scans | default([]) | length }}");
+
+    window.onload = function () {
+        const ctx = document.getElementById("chart");
+
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ["Scans"],
+                    datasets: [{
+                        label: "Total Scans",
+                        data: [total],
+                        backgroundColor: ["rgba(54, 162, 235, 0.6)"],
+                        borderColor: ["rgba(54, 162, 235, 1)"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    };
+</script>
+
+<!-- Table -->
+<table>
+    <tr>
+        <th>IP</th>
+        <th>City</th>
+        <th>Country</th>
+        <th>Device</th>
+        <th>Time</th>
+    </tr>
+
+    {% if scans %}
+        {% for s in scans %}
+        <tr>
+            <td>{{ s['ip'] or 'N/A' }}</td>
+            <td>{{ s['city'] or 'N/A' }}</td>
+            <td>{{ s['country'] or 'N/A' }}</td>
+            <td>{{ s['device'] or 'N/A' }}</td>
+            <td>{{ s['scan_time'] or 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="5">No data available</td>
+        </tr>
+    {% endif %}
+</table>
+
+</body>
+</html>

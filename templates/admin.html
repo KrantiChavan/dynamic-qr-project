@@ -1,0 +1,11 @@
+<h2>Admin Panel</h2>
+
+<h3>Users</h3>
+{% for u in users %}
+<p>{{u['username']}}</p>
+{% endfor %}
+
+<h3>QR Codes</h3>
+{% for q in qrs %}
+<p>{{q['data']}} - {{q['scans']}}</p>
+{% endfor %}
