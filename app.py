@@ -48,11 +48,9 @@ with app.app_context():
 
 os.makedirs("static/images", exist_ok=True)
 
-# Render deployment URL
-BASE_URL = os.environ.get(
-    "BASE_URL",
-    "http://127.0.0.1:5000"
-)
+# IMPORTANT:
+# Yaha apna Render URL dalo
+BASE_URL = "https://YOUR-APP-NAME.onrender.com"
 
 
 # ---------- QR GENERATE ----------
@@ -84,26 +82,16 @@ def generate_qr(data, filename):
 # ---------- HELPERS ----------
 def get_ip():
 
-    # Cloudflare real IP
+    # Render Real IP
     ip = request.headers.get(
-        'CF-Connecting-IP'
+        'X-Forwarded-For'
     )
 
-    # Render proxy IP
-    if not ip:
-
-        ip = request.headers.get(
-            'X-Forwarded-For',
-            request.remote_addr
-        )
-
-    # Multiple IP handling
     if ip and ',' in ip:
         ip = ip.split(',')[0].strip()
 
-    # IPv6 cleanup
-    if ip.startswith("::ffff:"):
-        ip = ip.replace("::ffff:", "")
+    if not ip:
+        ip = request.remote_addr
 
     return ip
 
@@ -112,7 +100,7 @@ def get_location(ip):
 
     try:
 
-        # Ignore localhost/private IP
+        # localhost/private IP
         private_ips = (
             "127.",
             "192.168.",
@@ -124,8 +112,7 @@ def get_location(ip):
         if ip.startswith(private_ips):
             return "Localhost", "Local"
 
-        # IPINFO API
-        url = f"https://ipinfo.io/{ip}/json"
+        url = f"http://ip-api.com/json/{ip}"
 
         response = requests.get(
             url,
@@ -134,7 +121,7 @@ def get_location(ip):
 
         data = response.json()
 
-        print("LOCATION DATA:", data)
+        print("LOCATION:", data)
 
         city = data.get(
             "city",
@@ -155,7 +142,7 @@ def get_location(ip):
         return "Unknown", "Unknown"
 
 
-# ---------- AUTH ----------
+# ---------- LOGIN ----------
 @app.route('/', methods=['GET', 'POST'])
 def login():
 
@@ -177,6 +164,7 @@ def login():
     return render_template("login.html")
 
 
+# ---------- SIGNUP ----------
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
 
@@ -259,9 +247,10 @@ def create():
 
         filename = f"{datetime.now().timestamp()}.png"
 
-        # Dynamic QR URL
+        qr_link = f"{BASE_URL}/qr/{filename}"
+
         generate_qr(
-            f"{BASE_URL}/qr/{filename}",
+            qr_link,
             filename
         )
 
@@ -311,14 +300,15 @@ def scan(img):
                 message="QR Expired"
             )
 
-    # Get visitor IP & location
+    # Visitor IP
     ip = get_ip()
 
     print("REAL IP:", ip)
 
+    # Location
     city, country = get_location(ip)
 
-    # Device detect
+    # Device
     ua = parse(
         request.headers.get('User-Agent')
     )
@@ -326,7 +316,7 @@ def scan(img):
     device = "Mobile" if ua.is_mobile else "PC"
 
     # Save scan
-    scan = Scan(
+    scan_data = Scan(
         qr_id=qr.id,
         ip=ip,
         city=city,
@@ -337,10 +327,10 @@ def scan(img):
 
     qr.scans += 1
 
-    db.session.add(scan)
+    db.session.add(scan_data)
     db.session.commit()
 
-    # Redirect target
+    # Redirect
     target = (
         qr.data
         if qr.data.startswith("http")
