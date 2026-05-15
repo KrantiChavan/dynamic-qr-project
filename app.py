@@ -50,7 +50,7 @@ os.makedirs("static/images", exist_ok=True)
 
 # IMPORTANT:
 # Yaha apna Render URL dalo
-BASE_URL = "https://YOUR-APP-NAME.onrender.com"
+BASE_URL = "https://dynamic-qr-project-1.onrender.com"
 
 
 # ---------- QR GENERATE ----------
